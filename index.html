@@ -6,6 +6,27 @@
     <title>Unity WebGL Player | URP Transparent</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
+
+    <style>
+        #unity-container {
+            width: 800px;
+            height: 600px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+        }
+
+        #camera-stream {
+            width: 800px;
+            height: 600px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 5;
+        }
+    </style>
+
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
@@ -23,6 +44,12 @@
         <div id="unity-build-title">URP Transparent</div>
       </div>
     </div>
+
+    <div id="unity-container">
+        <canvas id="unity-canvas"></canvas>
+    </div>
+    <video id="camera-stream" autoplay></video>
+
     <script>
 
       var container = document.querySelector("#unity-container");
@@ -118,5 +145,46 @@
       document.body.appendChild(script);
 
     </script>
+
+    <script>
+        async function startCamera() {
+            const video = document.getElementById('camera-stream');
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+            }
+        }
+
+        window.addEventListener('load', startCamera);
+
+        // Unity WebGL Build Loader
+        var buildUrl = "Build"; // 設置為您的 WebGL build 文件夾的路徑
+        var loaderUrl = buildUrl + "/Build.loader.js";
+        var config = {
+            dataUrl: buildUrl + "/Build.data",
+            frameworkUrl: buildUrl + "/Build.framework.js",
+            codeUrl: buildUrl + "/Build.wasm",
+            streamingAssetsUrl: "StreamingAssets",
+            companyName: "DefaultCompany",
+            productName: "MyProduct",
+            productVersion: "0.1",
+        };
+
+        var script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+            createUnityInstance(document.querySelector("#unity-canvas"), config, (progress) => {
+                console.log(`Loading: ${progress * 100}%`);
+            }).then((unityInstance) => {
+                console.log("Unity loaded");
+            }).catch((message) => {
+                alert(message);
+            });
+        };
+        document.body.appendChild(script);
+    </script>
+
   </body>
 </html>
